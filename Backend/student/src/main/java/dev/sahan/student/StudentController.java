@@ -27,4 +27,9 @@ public class StudentController {
         return student.get_id();
     }
 
+    @GetMapping(value = "/getAll")
+    private Iterable<Student> getStudent() {
+        return studentService.listAll();
+    }
+
 }
