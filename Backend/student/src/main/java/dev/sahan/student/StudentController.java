@@ -39,4 +39,9 @@ public class StudentController {
         studentService.saveOrUpdate(student);
         return student;
     }
+
+    @DeleteMapping("/delete/{id}")
+    private void deleteStudent(@PathVariable("id") String _id) {
+        studentService.deleteStudent(_id);
+    }
 }
