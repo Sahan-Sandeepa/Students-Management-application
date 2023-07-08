@@ -32,4 +32,11 @@ public class StudentController {
         return studentService.listAll();
     }
 
+    @PutMapping(value = "/edit/{id}")
+    private Student update(@RequestBody Student student, @PathVariable(name = "id") String _id) {
+
+        student.set_id(_id);
+        studentService.saveOrUpdate(student);
+        return student;
+    }
 }
