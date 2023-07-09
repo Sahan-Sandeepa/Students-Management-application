@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Form, Button, Table, Container, Modal } from "react-bootstrap";
 
 const Student = () => {
   const [studentid, setStudentid] = useState("");
@@ -7,6 +8,8 @@ const Student = () => {
   const [studentaddress, setStudentAddress] = useState("");
   const [mobile, setMobile] = useState("");
   const [students, setStudent] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState("");
 
   const loadStudents = async () => {
     try {
@@ -23,17 +26,31 @@ const Student = () => {
   const saveStudent = async (event) => {
     event.preventDefault();
 
+    // Check if the student already exists
+    const existingStudent = students.find(
+      (student) => student.studentname === studentname
+    );
+
+    if (existingStudent) {
+      setModalContent("Student already exists!");
+      setShowModal(true);
+      return;
+    }
+
     try {
       await axios.post("http://localhost:8080/api/v1/student/save", {
         studentname: studentname,
         studentaddress: studentaddress,
         mobile: mobile,
       });
-      alert("Student Registration Successful");
+      setModalContent("Student registration successful!");
+      setShowModal(true);
       clearFields();
       loadStudents();
     } catch (err) {
-      alert("User Registration Failed");
+      console.error(err);
+      setModalContent("Student registration failed!");
+      setShowModal(true);
     }
   };
 
@@ -49,10 +66,13 @@ const Student = () => {
       await axios.delete(
         "http://localhost:8080/api/v1/student/delete/" + studentid
       );
-      alert("Student deleted successfully");
+      setModalContent("Student deleted successfully!");
+      setShowModal(true);
       loadStudents();
     } catch (err) {
       console.error(err);
+      setModalContent("Failed to delete student!");
+      setShowModal(true);
     }
   };
 
@@ -68,11 +88,14 @@ const Student = () => {
           mobile: mobile,
         }
       );
-      alert("Details Updated");
+      setModalContent("Student details updated!");
+      setShowModal(true);
       clearFields();
       loadStudents();
     } catch (err) {
-      alert("Student Update Failed");
+      console.error(err);
+      setModalContent("Failed to update student details!");
+      setShowModal(true);
     }
   };
 
@@ -88,81 +111,71 @@ const Student = () => {
   }, []);
 
   return (
-    <div>
-      <h1 className="text-center mt-4">Student Details</h1>
-      <div className="container mt-4">
-        <form>
-          <div className="mb-3">
-            <label htmlFor="studentname" className="form-label">
-              Student Name
-            </label>
-            <input
+    <div className="bg-light py-5" style={{ minHeight: "100vh" }}>
+      <Container className="bg-white p-5 rounded">
+        <h1 className="text-center text-dark mb-4">Student Details</h1>
+        <Form>
+          <Form.Group className="mb-3" controlId="studentname">
+            <Form.Label>Student Name</Form.Label>
+            <Form.Control
               type="text"
-              className="form-control"
-              id="studentname"
               value={studentname}
               onChange={(event) => {
                 setStudentName(event.target.value);
               }}
+              style={{ backgroundColor: "#f8f9fa" }}
             />
-          </div>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="studentaddress" className="form-label">
-              Student Address
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="studentaddress">
+            <Form.Label>Student Address</Form.Label>
+            <Form.Control
               type="text"
-              className="form-control"
-              id="studentaddress"
               value={studentaddress}
               onChange={(event) => {
                 setStudentAddress(event.target.value);
               }}
+              style={{ backgroundColor: "#f8f9fa" }}
             />
-          </div>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="mobile" className="form-label">
-              Mobile
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="mobile">
+            <Form.Label>Mobile</Form.Label>
+            <Form.Control
               type="text"
-              className="form-control"
-              id="mobile"
               value={mobile}
               onChange={(event) => {
                 setMobile(event.target.value);
               }}
+              style={{ backgroundColor: "#f8f9fa" }}
             />
-          </div>
+          </Form.Group>
 
-          <div className="d-grid gap-2">
-            <button
-              className="btn btn-primary"
-              type="button"
-              onClick={saveStudent}
-            >
+          <div className="text-center">
+            <Button className="me-2" variant="primary" onClick={saveStudent}>
               Register
-            </button>
-            <button
-              className="btn btn-warning mt-2"
-              type="button"
-              onClick={updateStudent}
-            >
+            </Button>
+            <Button variant="warning" onClick={updateStudent}>
               Update
-            </button>
+            </Button>
           </div>
-        </form>
-      </div>
+        </Form>
+      </Container>
       <br />
-      <table className="table table-dark table-striped" align="center">
+      <Table
+        striped
+        bordered
+        hover
+        variant="info"
+        className="mx-auto w-75"
+        style={{ backgroundColor: "#f8f9fa" }}
+      >
         <thead>
           <tr>
-            <th scope="col">Student Name</th>
-            <th scope="col">Student Address</th>
-            <th scope="col">Student Mobile</th>
-            <th scope="col">Option</th>
+            <th>Student Name</th>
+            <th>Student Address</th>
+            <th>Student Mobile</th>
+            <th>Option</th>
           </tr>
         </thead>
         <tbody>
@@ -172,25 +185,37 @@ const Student = () => {
               <td>{student.studentaddress}</td>
               <td>{student.mobile}</td>
               <td>
-                <button
-                  type="button"
-                  className="btn btn-warning"
+                <Button
+                  className="me-2"
+                  variant="warning"
                   onClick={() => editStudent(student)}
+                  style={{ backgroundColor: "#ffc107" }}
                 >
                   Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
+                </Button>
+                <Button
+                  variant="danger"
                   onClick={() => deleteStudent(student._id)}
+                  style={{ backgroundColor: "#dc3545" }}
                 >
                   Delete
-                </button>
+                </Button>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Alert</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{modalContent}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
