@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useEffect, useState } from "react";
 
 const Student = () => {
   const [studentid, setStudentid] = useState("");
@@ -9,49 +8,55 @@ const Student = () => {
   const [mobile, setMobile] = useState("");
   const [students, setStudent] = useState([]);
 
-  const Load = async () => {
-    const result = await axios.get(
-      "http://localhost:8080/api/v1/student/getAll"
-    );
-    setStudent(result.data);
-    console.log(result.data);
+  const loadStudents = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8080/api/v1/student/getAll"
+      );
+      setStudent(response.data);
+      console.log(response.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const save = async (event) => {
+  const saveStudent = async (event) => {
     event.preventDefault();
+
     try {
       await axios.post("http://localhost:8080/api/v1/student/save", {
         studentname: studentname,
         studentaddress: studentaddress,
         mobile: mobile,
       });
-      alert("Student Registration Successfully");
-      setStudentid("");
-      setStudentName("");
-      setStudentAddress("");
-      setMobile("");
-      Load();
+      alert("Student Registration Successful");
+      clearFields();
+      loadStudents();
     } catch (err) {
       alert("User Registration Failed");
     }
   };
 
-  const editStudent = async (students) => {
-    setStudentName(students.studentname);
-    setStudentAddress(students.studentaddress);
-    setMobile(students.mobile);
-    setStudentid(students._id);
+  const editStudent = (student) => {
+    setStudentName(student.studentname);
+    setStudentAddress(student.studentaddress);
+    setMobile(student.mobile);
+    setStudentid(student._id);
   };
 
-  const DeleteStudent = async (studentid) => {
-    await axios.delete(
-      "http://localhost:8080/api/v1/student/delete/" + studentid
-    );
-    alert("Student deleted Successfully");
-    Load();
+  const deleteStudent = async (studentid) => {
+    try {
+      await axios.delete(
+        "http://localhost:8080/api/v1/student/delete/" + studentid
+      );
+      alert("Student deleted successfully");
+      loadStudents();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const update = async (event) => {
+  const updateStudent = async (event) => {
     event.preventDefault();
 
     try {
@@ -64,27 +69,33 @@ const Student = () => {
         }
       );
       alert("Details Updated");
-      setStudentid("");
-      setStudentName("");
-      setStudentAddress("");
-      setMobile("");
-      Load();
+      clearFields();
+      loadStudents();
     } catch (err) {
       alert("Student Update Failed");
     }
   };
 
+  const clearFields = () => {
+    setStudentid("");
+    setStudentName("");
+    setStudentAddress("");
+    setMobile("");
+  };
+
   useEffect(() => {
-    (async () => await Load())();
+    loadStudents();
   }, []);
 
   return (
     <div>
-      <h1>Student Details</h1>
+      <h1 className="text-center mt-4">Student Details</h1>
       <div className="container mt-4">
         <form>
-          <div className="form-group">
-            <label>Student Name</label>
+          <div className="mb-3">
+            <label htmlFor="studentname" className="form-label">
+              Student Name
+            </label>
             <input
               type="text"
               className="form-control"
@@ -96,8 +107,10 @@ const Student = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Student Address</label>
+          <div className="mb-3">
+            <label htmlFor="studentaddress" className="form-label">
+              Student Address
+            </label>
             <input
               type="text"
               className="form-control"
@@ -109,8 +122,10 @@ const Student = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Mobile</label>
+          <div className="mb-3">
+            <label htmlFor="mobile" className="form-label">
+              Mobile
+            </label>
             <input
               type="text"
               className="form-control"
@@ -122,31 +137,37 @@ const Student = () => {
             />
           </div>
 
-          <div>
-            <button className="btn btn-primary mt-4" onClick={save}>
+          <div className="d-grid gap-2">
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={saveStudent}
+            >
               Register
             </button>
-
-            <button className="btn btn-warning mt-4" onClick={update}>
+            <button
+              className="btn btn-warning mt-2"
+              type="button"
+              onClick={updateStudent}
+            >
               Update
             </button>
           </div>
         </form>
       </div>
       <br />
-      <table className="table table-dark" align="center">
+      <table className="table table-dark table-striped" align="center">
         <thead>
           <tr>
             <th scope="col">Student Name</th>
             <th scope="col">Student Address</th>
             <th scope="col">Student Mobile</th>
-
             <th scope="col">Option</th>
           </tr>
         </thead>
-        {students?.map((student) => (
-          <tbody key={student._id}>
-            <tr>
+        <tbody>
+          {students?.map((student) => (
+            <tr key={student._id}>
               <td>{student.studentname}</td>
               <td>{student.studentaddress}</td>
               <td>{student.mobile}</td>
@@ -161,14 +182,14 @@ const Student = () => {
                 <button
                   type="button"
                   className="btn btn-danger"
-                  onClick={() => DeleteStudent(student._id)}
+                  onClick={() => deleteStudent(student._id)}
                 >
                   Delete
                 </button>
               </td>
             </tr>
-          </tbody>
-        ))}
+          ))}
+        </tbody>
       </table>
     </div>
   );
